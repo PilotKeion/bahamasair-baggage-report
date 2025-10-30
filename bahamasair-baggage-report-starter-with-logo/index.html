@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bahamasair — Baggage Irregularity Report</title>
+  <meta name="description" content="Submit a damaged, pilfered, or delayed baggage report to Bahamasair." />
+  <style>
+    :root{ --ba-blue:#1565c0; --ba-dark:#0f3a6d; --ba-light:#f6f8fb; --ba-border:#dbe3ef; --ba-focus:#3b82f6; --radius:14px; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--ba-light);color:#0b1320}
+    header{background:white;border-bottom:1px solid var(--ba-border)}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .brand h1{font-size:1.5rem;color:var(--ba-dark);font-weight:800;margin:0}
+    .card{background:white;border:1px solid var(--ba-border);border-radius:var(--radius);padding:18px;margin:18px auto;box-shadow:0 6px 16px rgba(7,14,30,.05)}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:720px){.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr 1fr}.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}}
+    label{font-weight:600;font-size:.95rem}
+    .hint{font-size:.85rem;color:#4b5563;margin-top:2px}
+    input,select,textarea{width:100%;padding:12px 14px;border:1px solid var(--ba-border);border-radius:12px;background:#fff;font-size:1rem}
+    textarea{min-height:110px;resize:vertical}
+    input:focus,select:focus,textarea:focus{outline:3px solid rgba(59,130,246,.25);border-color:var(--ba-focus)}
+    .pill{display:inline-block;background:#eef4ff;color:var(--ba-dark);padding:6px 10px;border-radius:999px;font-size:.8rem}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    .btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer}
+    .btn-primary{background:var(--ba-blue);color:#fff}
+    .btn-secondary{background:#e9eefb;color:#0b1320}
+    .req{color:#ef4444;margin-left:4px}
+    .footer-note{font-size:.85rem;color:#4b5563}
+    .visually-hidden{position:absolute !important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+    .section-title{font-weight:800;color:var(--ba-dark);margin-top:8px}
+    details.help-card{border:1px solid var(--ba-border);border-radius:12px;background:#fff;padding:10px 12px;margin:8px 0 12px;}
+    details.help-card:not([open]){padding:0;background:transparent;border-color:transparent}
+    .help-summary{list-style:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--ba-dark)}
+    .help-summary::-webkit-details-marker{display:none}
+    .qmark{width:24px;height:24px;border-radius:999px;border:1px solid var(--ba-border);background:#fff;font-weight:800;display:inline-grid;place-items:center;pointer-events:none}
+    .muted{font-size:.85rem;color:#6b7280}
+    .help-card img{max-width:100%;height:auto;border-radius:10px}
+    .subcard{border:1px dashed var(--ba-border);border-radius:12px;padding:12px;background:#fafcff}
+    .hidden{display:none}
+    .flight-card{border:1px solid var(--ba-border);border-radius:12px;padding:12px;background:#fbfdff;margin-top:10px}
+    .sublabel{font-size:.84rem;color:#4b5563;margin:0 0 2px 2px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand" role="banner" aria-label="Bahamasair">\n      <img src="assets/bahamasair-logo.jpeg" alt="Bahamasair logo" style="height:40px;width:auto;object-fit:contain" />
+      <h1>Baggage Irregularity Report</h1>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card">
+      <p class="pill">Damaged • Pilfered • Delayed (21+ days)</p>
+      <p class="footer-note">Please complete the form below. Fields marked with <span class="req">*</span> are required.</p>
+
+      <form id="claimForm" action="/api/submit" method="post" enctype="multipart/form-data" novalidate>
+        <!-- Honeypot -->
+        <div class="visually-hidden">
+          <label for="fax">Fax</label>
+          <input id="fax" name="fax" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <!-- Hidden metadata -->
+        <input type="hidden" name="case_id" id="case_id" />
+        <input type="hidden" name="user_agent" id="user_agent" />
+        <input type="hidden" name="origin_url" id="origin_url" />
+
+        <!-- Hidden synthesized fields -->
+        <input type="hidden" name="flight_segments" id="flight_segments" />
+        <input type="hidden" name="weight" id="weight_hidden" />
+        <input type="hidden" name="weight_unit" id="weight_unit_hidden" />
+
+        <h2 class="section-title">Passenger Information</h2>
+        <div class="grid grid-2">
+          <div>
+            <label for="full_name">Full Name <span class="req">*</span></label>
+            <input id="full_name" name="full_name" required />
+          </div>
+          <div>
+            <label for="email">Email <span class="req">*</span></label>
+            <input id="email" name="email" type="email" required />
+          </div>
+          <div>
+            <label for="phone">Phone <span class="req">*</span></label>
+            <input id="phone" name="phone" required />
+          </div>
+          <div>
+            <label for="address">Mailing Address</label>
+            <input id="address" name="address" />
+          </div>
+          <div>
+            <label for="temp_address">Temporary Address</label>
+            <input id="temp_address" name="temp_address" placeholder="Where can the baggage be delivered?" />
+          </div>
+          <div>
+            <label for="temp_stay_days">Length of Stay at Temporary Address (days)</label>
+            <input id="temp_stay_days" name="temp_stay_days" type="number" min="0" step="1" placeholder="e.g., 7" />
+          </div>
+        </div>
+
+        <h2 class="section-title">Flight Details</h2>
+        <div class="grid grid-4">
+          <div>
+            <label for="date">Date <span class="req">*</span></label>
+            <input id="date" name="date" type="date" required />
+          </div>
+          <div>
+            <label for="flight">Flight Number <span class="req">*</span></label>
+            <input id="flight" name="flight" required placeholder="e.g., UP212" />
+          </div>
+          <div>
+            <label for="origin_station">Origin</label>
+            <select id="origin_station" name="origin">
+              <option value="">Select</option>
+              <optgroup label="Bahamas (Domestic)">
+                <option>NAS</option><option>FPO</option><option>GGT</option><option>ELH</option>
+                <option>RSD</option><option>MHH</option><option>BIM</option><option>ZSA</option>
+                <option>LGI</option><option>SML</option><option>MYG</option><option>IGA</option>
+              </optgroup>
+              <optgroup label="International">
+                <option>MIA</option><option>FLL</option><option>MCO</option><option>PLS</option>
+                <option>KIN</option><option>HAV</option>
+              </optgroup>
+              <option value="OTHER_ORIGIN">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="station">Destination <span class="req">*</span></label>
+            <select id="station" name="station" required>
+              <optgroup label="Bahamas (Domestic)">
+                <option value="NAS">Nassau (NAS)</option>
+                <option value="FPO">Freeport (FPO)</option>
+                <option value="GGT">George Town, Exuma (GGT)</option>
+                <option value="ELH">North Eleuthera (ELH)</option>
+                <option value="RSD">Rock Sound (RSD)</option>
+                <option value="MHH">Marsh Harbour (MHH)</option>
+                <option value="BIM">Bimini (BIM)</option>
+                <option value="ZSA">San Salvador (ZSA)</option>
+                <option value="LGI">Deadman's Cay (LGI)</option>
+                <option value="SML">Stella Maris (SML)</option>
+                <option value="MYG">Mayaguana (MYG)</option>
+                <option value="IGA">Inagua (IGA)</option>
+              </optgroup>
+              <optgroup label="International">
+                <option value="MIA">Miami, FL (MIA)</option>
+                <option value="FLL">Fort Lauderdale, FL (FLL)</option>
+                <option value="MCO">Orlando, FL (MCO)</option>
+                <option value="PLS">Providenciales, TCI (PLS)</option>
+                <option value="KIN">Kingston, Jamaica (KIN)</option>
+                <option value="HAV">Havana, Cuba (HAV)</option>
+              </optgroup>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-2" id="otherWraps" style="margin-top:8px">
+          <div id="originOtherWrap" style="display:none;">
+            <label for="origin_other">If Other (Origin), enter</label>
+            <input id="origin_other" placeholder="Carrier/City, Airport Code (e.g., Delta ATL)" />
+          </div>
+          <div id="stationOtherWrap" style="display:none;">
+            <label for="station_other">If Other (Destination), enter</label>
+            <input id="station_other" placeholder="Carrier/City, Airport Code (e.g., Delta ATL)" />
+          </div>
+        </div>
+
+        <div class="subcard">
+          <strong>Additional Flight Segments (optional)</strong>
+          <div id="flights"></div>
+          <div class="actions">
+            <button class="btn btn-secondary" type="button" id="addFlight">+ Add another flight</button>
+          </div>
+          <p class="hint">Add prior/connecting segments if needed. These will be included in your email report.</p>
+        </div>
+
+        <h2 class="section-title">Baggage Description</h2>
+        <details id="iata-panel" class="help-card">
+          <summary class="help-summary"><span>IATA Type</span><button type="button" class="qmark" aria-hidden="true" tabindex="-1">?</button></summary>
+          <div class="muted" style="margin:8px 0 6px">IATA Baggage Identification Chart (tap to zoom or long-press to save):</div>
+          <img src="assets/iata-bag-chart.jpg" alt="IATA Baggage Identification Chart" />
+        </details>
+        <label for="bag_type" class="visually-hidden">IATA Type</label>
+        <input id="bag_type" name="bag_type" placeholder="e.g., 23, 27, 29" />
+        <div class="grid grid-3" style="margin-top:12px">
+          <div>
+            <label for="color">Color</label>
+            <input id="color" name="color" />
+          </div>
+          <div>
+            <label for="weight_value">Weight</label>
+            <input id="weight_value" type="number" min="0" step="0.1" placeholder="e.g., 21.5" />
+          </div>
+          <div>
+            <label for="weight_unit_select">Unit</label>
+            <select id="weight_unit_select">
+              <option value="kg">Kilograms (kg)</option>
+              <option value="lb">Pounds (lb)</option>
+            </select>
+          </div>
+        </div>
+        <div class="hint" id="converted">—</div>
+        <div class="grid grid-2" style="margin-top:12px">
+          <div>
+            <label for="check_no">Check No.</label>
+            <input id="check_no" name="check_no" />
+          </div>
+          <div>
+            <label for="locked">Locked?</label>
+            <select id="locked" name="locked">
+              <option value="">Select</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+        </div>
+
+        <h2 class="section-title">Incident Details</h2>
+        <div class="grid">
+          <div>
+            <label for="incident_type">Report Type <span class="req">*</span></label>
+            <select id="incident_type" name="incident_type" required>
+              <option value="">Select</option>
+              <option>Damaged</option>
+              <option>Pilfered</option>
+              <option>Delayed (21+ days)</option>
+            </select>
+          </div>
+          <div>
+            <label for="damage_desc">Describe Damage / Missing Contents <span class="req">*</span></label>
+            <textarea id="damage_desc" name="damage_desc" required></textarea>
+          </div>
+          <div>
+            <label for="uploads">Upload Photos / Receipts</label>
+            <input id="uploads" name="uploads[]" type="file" accept=".jpg,.jpeg,.png,.pdf" multiple />
+            <div class="hint">Max 5 files • 10MB each • JPG/PNG/PDF</div>
+          </div>
+
+          <div id="damagedBox" class="subcard hidden" aria-live="polite">
+            <strong>Damaged Bag Details</strong>
+            <div class="grid grid-3" style="margin-top:8px">
+              <div>
+                <label for="brand_dmg">Brand <span class="req">*</span></label>
+                <input id="brand_dmg" name="brand_dmg" placeholder="e.g., Samsonite" />
+              </div>
+              <div>
+                <label for="age_years">Bag Age (years) <span class="req">*</span></label>
+                <input id="age_years" name="age_years" type="number" min="0" step="0.1" />
+              </div>
+              <div>
+                <label for="purchase_price">Purchase Price (USD) <span class="req">*</span></label>
+                <input id="purchase_price" name="purchase_price" type="number" min="0" step="1" />
+              </div>
+            </div>
+            <p class="hint">These details help us assess repair vs. replacement in line with policy.</p>
+          </div>
+
+          <div>
+            <label><input type="checkbox" name="confirm" required> I confirm the information provided is accurate. <span class="req">*</span></label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Submit Report</button>
+          <button class="btn btn-secondary" type="reset">Clear Form</button>
+        </div>
+
+        <p class="footer-note" style="margin-top:10px">
+          This is a copy of your report covering the mishandling (delay, pilfered, damage or loss) of your baggage.
+          NOTE: All damage bag reports will be processed in the order that they are received.
+          <strong>ANY CLAIM RECEIVED AFTER 90 DAYS WILL NOT BE HONORED.</strong>
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('claimForm');
+      if (!form) return console.error('claimForm not found');
+
+      // Case + metadata
+      const pad = (n)=>String(n).padStart(2,'0');
+      const makeCaseId = ()=>{
+        const d=new Date();
+        return `BAG-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+      };
+      document.getElementById('case_id').value = makeCaseId();
+      document.getElementById('user_agent').value = navigator.userAgent;
+      document.getElementById('origin_url').value = location.href;
+
+      // Incident type toggle
+      const incidentSel = document.getElementById('incident_type');
+      const damagedBox = document.getElementById('damagedBox');
+      const reqs = ['brand_dmg','age_years','purchase_price'].map(id => document.getElementById(id));
+      const toggleDamaged = ()=>{
+        const isDamaged = incidentSel.value === 'Damaged';
+        damagedBox.classList.toggle('hidden', !isDamaged);
+        reqs.forEach(el => el.required = isDamaged);
+      };
+      incidentSel.addEventListener('change', toggleDamaged); toggleDamaged();
+
+      // Weight conversion
+      const weightValueEl = document.getElementById('weight_value');
+      const weightUnitSel = document.getElementById('weight_unit_select');
+      const convertedEl = document.getElementById('converted');
+      const weightHidden = document.getElementById('weight_hidden');
+      const weightUnitHidden = document.getElementById('weight_unit_hidden');
+      const updateConversion = ()=>{
+        const v = parseFloat(weightValueEl.value);
+        const unit = weightUnitSel.value;
+        weightUnitHidden.value = unit;
+        if (isNaN(v)){ convertedEl.textContent = '—'; weightHidden.value=''; return; }
+        if (unit === 'kg'){
+          const lb = v * 2.2046226218;
+          convertedEl.textContent = `${v.toFixed(2)} kg ≈ ${lb.toFixed(2)} lb`;
+          weightHidden.value = v.toFixed(2);
+        } else {
+          const kg = v / 2.2046226218;
+          convertedEl.textContent = `${v.toFixed(2)} lb ≈ ${kg.toFixed(2)} kg`;
+          weightHidden.value = v.toFixed(2);
+        }
+      };
+      weightValueEl.addEventListener('input', updateConversion);
+      weightUnitSel.addEventListener('change', updateConversion);
+      updateConversion();
+
+      // Origin/Destination "Other"
+      const originSel = document.getElementById('origin_station');
+      const originOtherWrap = document.getElementById('originOtherWrap');
+      const originOtherInput = document.getElementById('origin_other');
+      originSel.addEventListener('change', () => {
+        originOtherWrap.style.display = originSel.value === 'OTHER_ORIGIN' ? 'block' : 'none';
+      });
+      const stationSel = document.getElementById('station');
+      const stationOtherWrap = document.getElementById('stationOtherWrap');
+      const stationOtherInput = document.getElementById('station_other');
+      stationSel.addEventListener('change', () => {
+        stationOtherWrap.style.display = stationSel.value === 'OTHER' ? 'block' : 'none';
+      });
+
+      // Flight repeater
+      const flightsWrap = document.getElementById('flights');
+      const addBtn = document.getElementById('addFlight');
+      const addFlight = ()=>{
+        const card = document.createElement('div');
+        card.className = 'flight-card';
+        card.innerHTML = `
+          <div class="grid grid-4">
+            <div>
+              <label>Date</label>
+              <input type="date" class="f_date" />
+            </div>
+            <div>
+              <label>Flight Number</label>
+              <input type="text" class="f_no" placeholder="e.g., UP212" />
+            </div>
+            <div>
+              <label>Origin</label>
+              <select class="f_origin">
+                <option value="">Select</option>
+                <option>NAS</option><option>FPO</option><option>GGT</option><option>ELH</option>
+                <option>RSD</option><option>MHH</option><option>BIM</option><option>ZSA</option>
+                <option>LGI</option><option>SML</option><option>MYG</option><option>IGA</option>
+                <option>MIA</option><option>FLL</option><option>MCO</option><option>PLS</option>
+                <option>KIN</option><option>HAV</option>
+              </select>
+            </div>
+            <div>
+              <label>Destination</label>
+              <select class="f_station">
+                <option value="">Select</option>
+                <option>NAS</option><option>FPO</option><option>GGT</option><option>ELH</option>
+                <option>RSD</option><option>MHH</option><option>BIM</option><option>ZSA</option>
+                <option>LGI</option><option>SML</option><option>MYG</option><option>IGA</option>
+                <option>MIA</option><option>FLL</option><option>MCO</option><option>PLS</option>
+                <option>KIN</option><option>HAV</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button type="button" class="btn btn-secondary f_remove">Remove</button>
+          </div>`;
+        card.querySelector('.f_remove').addEventListener('click', () => card.remove());
+        flightsWrap.appendChild(card);
+      };
+      addBtn.addEventListener('click', addFlight);
+
+      // Before submit: copy Other values and build flight_segments
+      form.addEventListener('submit', () => {
+        if (originSel.value === 'OTHER_ORIGIN' && originOtherInput.value.trim() !== '') {
+          const h = document.createElement('input');
+          h.type = 'hidden'; h.name = 'origin'; h.value = originOtherInput.value.trim();
+          form.appendChild(h);
+          originSel.removeAttribute('name');
+        }
+        if (stationSel.value === 'OTHER' && stationOtherInput.value.trim() !== '') {
+          const h2 = document.createElement('input');
+          h2.type = 'hidden'; h2.name = 'station'; h2.value = stationOtherInput.value.trim();
+          form.appendChild(h2);
+          stationSel.removeAttribute('name');
+        }
+        const cards = Array.from(document.querySelectorAll('.flight-card'));
+        const lines = [];
+        cards.forEach((c, i) => {
+          const fd = c.querySelector('.f_date')?.value || '';
+          const fn = c.querySelector('.f_no')?.value || '';
+          const fo = c.querySelector('.f_origin')?.value || '';
+          const fs = c.querySelector('.f_station')?.value || '';
+          if (fd || fn || fo || fs) lines.push(`Segment ${i+1}: Date=${fd} Flight=${fn} Origin=${fo} Destination=${fs}`);
+        });
+        document.getElementById('flight_segments').value = lines.join('\n');
+      });
+    });
+  </script>
+</body>
+</html>

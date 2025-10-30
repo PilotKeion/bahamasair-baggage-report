@@ -1,0 +1,10 @@
+{
+  "name": "bahamasair-baggage-report",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
+    "aws-lambda-multipart-parser": "^0.1.2"
+  }
+}
