@@ -450,3 +450,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { capture: true }); // capture so it runs before any other handler that might .preventDefault()
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('claimForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    // Decide format: we’ll send urlencoded when no files are attached
+    const uploads = document.getElementById('uploads');
+    const hasFiles = uploads && uploads.files && uploads.files.length > 0;
+
+    // Build FormData (handles all fields already in the form)
+    const fd = new FormData(form);
+
+    // Show which keys we’re sending (optional debug)
+    const keys = [];
+    fd.forEach((_, k) => { if (!keys.includes(k)) keys.push(k); });
+    console.log('Submitting keys:', keys);
+
+    if (!hasFiles) {
+      // Send as urlencoded (more robust)
+      e.preventDefault();
+      const params = new URLSearchParams();
+      fd.forEach((v, k) => { if (!(v instanceof File)) params.append(k, v); });
+
+      const r = await fetch(form.action, { method: 'POST', body: params });
+      const text = await r.text();
+
+      // Expect "OK:BAG-YYYYMMDD-..." — show it nicely
+      const match = text.match(/OK:([A-Z0-9\-]+)/i);
+      const caseId = match ? match[1] : null;
+
+      if (r.ok && caseId) {
+        alert(`Submitted! Your reference is ${caseId}. A copy has been emailed to you.`);
+        form.reset();
+        // OPTIONAL: window.location.href = `/thank-you.html?case=${encodeURIComponent(caseId)}`;
+      } else {
+        alert(`There was an issue submitting the form:\n${text}`);
+      }
+    }
+    // If files are attached we fall back to the browser's native multipart submit
+    // (don’t set headers; let the browser manage the boundary).
+  }, { capture: true });
+});
+</script>
