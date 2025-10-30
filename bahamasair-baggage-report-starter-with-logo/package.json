@@ -8,3 +8,8 @@
     "aws-lambda-multipart-parser": "^0.1.2"
   }
 }
+return {
+  statusCode: 200,
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ status: "ok", caseId })
+};
