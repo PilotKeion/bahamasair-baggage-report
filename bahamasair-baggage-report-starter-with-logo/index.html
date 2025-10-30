@@ -414,3 +414,39 @@
   </script>
 </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('claimForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    // DON’T prevent default — we’ll let the browser do a normal submit
+    // BUT we’ll add a small debug snapshot of keys so we know what’s going up.
+    try {
+      const fd = new FormData(form);
+      const keys = [];
+      fd.forEach((_, k) => { if (!keys.includes(k)) keys.push(k); });
+      console.log('Submitting keys:', keys);
+
+      // Conditional submit: urlencoded when no files; multipart when files
+      const uploads = form.querySelector('#uploads');
+      const hasFiles = uploads && uploads.files && uploads.files.length > 0;
+
+      if (!hasFiles) {
+        // Send as application/x-www-form-urlencoded (more reliable on Netlify)
+        e.preventDefault();
+        const urlParams = new URLSearchParams();
+        fd.forEach((v, k) => { if (v instanceof File) return; urlParams.append(k, v); });
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          body: urlParams, // Let fetch set the proper header
+        });
+        const text = await resp.text();
+        alert(text);
+      } // else: let the native submit proceed (multipart), no manual headers.
+    } catch (err) {
+      console.error('Submit helper error:', err);
+    }
+  }, { capture: true }); // capture so it runs before any other handler that might .preventDefault()
+});
+</script>
