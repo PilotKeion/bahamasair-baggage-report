@@ -494,3 +494,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { capture: true });
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('claimForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    const uploads = document.getElementById('uploads');
+    const hasFiles = uploads && uploads.files && uploads.files.length > 0;
+
+    if (!hasFiles) {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const params = new URLSearchParams();
+      fd.forEach((v, k) => { if (!(v instanceof File)) params.append(k, v); });
+
+      const r = await fetch(form.action, { method: 'POST', body: params });
+      const text = await r.text();
+      const m = text.match(/OK:([A-Z0-9\-]+)/i);
+      if (r.ok && m) {
+        alert(`Submitted! Reference: ${m[1]}. A copy has been emailed to you.`);
+        form.reset();
+      } else if (r.ok && text.trim() === 'OK') {
+        // fallback if function still returns just "OK"
+        alert(`Submitted! A copy has been emailed to you.`);
+        form.reset();
+      } else {
+        alert(`There was an issue submitting the form:\n${text}`);
+      }
+    }
+    // With files attached, let the native multipart submit run (no custom headers).
+  }, { capture: true });
+});
+</script>
