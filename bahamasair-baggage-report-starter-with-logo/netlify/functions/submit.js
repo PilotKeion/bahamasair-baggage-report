@@ -75,7 +75,7 @@ exports.handler = async (event, context) => {
     }
 
     // ... (send email code you already have) ...
-    return { statusCode: 200, body: "OK" };
+    return { statusCode: 200, body: "OK:${caseId}" };
   } catch (err) {
     console.error(err);
     return { statusCode: 500, body: "Server error: " + (err.message || String(err)) };
